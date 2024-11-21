@@ -21,8 +21,6 @@ void Inicia_IMU()
     dmpReady = true;
     packetSize = mpu.dmpGetFIFOPacketSize();
   } 
-/*********************************************/
-  pinMode(LED_PIN, OUTPUT);
 }
 
 
@@ -49,14 +47,10 @@ void Mide_Angulo()
     mpu.dmpGetGravity(&gravity, &q);
     mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
     
-   /*Obetncion de los ángulos*/
-   yaw=ypr[0] * 180/M_PI;
-   pitch=ypr[1]*180/M_PI;
-   roll=ypr[2]*180/M_PI;
-
-   blinkState = !blinkState;
-    digitalWrite(LED_PIN, blinkState);
-   
+   /*Obtencion de los ángulos*/
+   yaw   =  ypr[0];
+   pitch =  ypr[1];
+   roll  =  ypr[2];   
  } 
 }
 
