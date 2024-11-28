@@ -8,13 +8,13 @@
   v_3 = sin(alfa) * (-0.866*U_roll + 0.5*U_pitch);    //Asegurarse que pitch y roll se consideraron en el plano correcto
 } */
 
-/* void AnguloPelota(){
+/*void AnguloPelota(){
   //Taken from Design of LQR Controller
   theta_b = rw*theta_w / (rb * cos(beta - 0.523) * cos(alfa));
   theta_b_x = theta_b * cos(beta);
   theta_b_y = theta_b * sin(beta);
   Serial.print("Theta_b: " + String(theta_b) + "     ");  
-} */
+}*/ 
 
 void VelocidadAngularPelota(){
   //Taken from Zurich pp. 76

@@ -17,53 +17,51 @@
 #include "I2Cdev.h"
 #include "MPU6050_6Axis_MotionApps20.h"
 #include "Wire.h"
-#include <PID_v1.h> // bilioteca PID 
-#include <BluetoothSerial.h>
+#include "PID_v1.h" // bilioteca PID 
+#include "BluetoothSerial.h"
 
-// Physical Parameters (w: wheel    b: ball    r: robot)
+// Physical parameters (w: wheel    b: ball    r: robot)
 const float rw = 0.03;  // [m]
 const float rb = 0.274;  // bola cargada
 //const float rb = 0.12;   // bola basquet
-float angle_w1 = 0, angle_w2 = 0, angle_w3 = 0; 
+
+// Ballbot model states 
 float theta_b = 0, theta_b_x = 0, theta_b_y = 0;      //angulo de la pelota (variable de estado)
-float beta = 0;
 
-// IMU
+// Inertial Measurement Unit
 MPU6050 mpu;
-#define INTERRUPT_PIN  19  // use pin 2 on Arduino Uno & most boards
-float yaw=0,pitch=0,roll=0;
-
-bool dmpReady = false;  // set true if DMP init was successful
-uint8_t mpuIntStatus;   // holds actual interrupt status byte from MPU
-uint8_t devStatus;      // return status after each device operation (0 = success, !0 = error)
-uint16_t packetSize;    // expected DMP packet size (default is 42 bytes)
-uint16_t fifoCount;     // count of all bytes currently in FIFO
-uint8_t fifoBuffer[64]; // FIFO storage buffer
+float yaw = 0, pitch = 0, roll = 0;
+byte mpuInterruption = 19;                              // use pin 2 on Arduino Uno & most boards
+bool dmpReady = false;                                // set true if DMP init was successful
+uint8_t mpuInterruptionStatus;
+uint8_t deviceStatus;                                 // return status after each device operation (0 = success, !0 = error)
+uint16_t dmpPacketSize;                               // default is 42 bytes
+uint16_t fifoBytesCount;
+uint8_t fifoStorageBuffer[64];
 
 // Motion
-Quaternion q;           // [w, x, y, z]         quaternion container
-VectorInt16 aa;         // [x, y, z]            accel sensor measurements
-VectorInt16 aaReal;     // [x, y, z]            gravity-free accel sensor measurements
-VectorInt16 aaWorld;    // [x, y, z]            world-frame accel sensor measurements
-VectorFloat gravity;    // [x, y, z]            gravity vector
-float euler[3];         // [psi, theta, phi]    Euler angle container
-float ypr[3];           // [yaw, pitch, roll]   yaw/pitch/roll container and gravity vector
+Quaternion q;                                         // quaternion container [w, x, y, z]
+VectorFloat gravityVector;
+float beta = 0;
+float angle_w1 = 0, angle_w2 = 0, angle_w3 = 0;
+float ypr[3];                                         // ypr container and gravity vector
 
-//////////////VARIABLES PARA MOTORES/////////////////////////////////////////////////////////////////////////////////////
+// Motor pins
 int dir1=18, dir2=17, dir3=4;   
 int pwm1=5, pwm2=16, pwm3=2;
 boolean direccion1=HIGH,direccion2=HIGH,direccion3=HIGH;
 
-///////////////// VARIABLES PARA CONTROL MOTORES /////////////////////////
+// Motor control
 float Entrada_1 = 0;
 float Entrada_2 = 0;
 float Entrada_3 = 0;
 
-//////////////VARIABLES PARA RELACIÓN DE PAR/////////////////////////////////////////////////////////////////////////////
+// Torque relation
 //float alfa=1.169;     //67° en radianes   KAB
 float alfa = 0.401;     //23° en radianes   Zurich
 float T_1 = 0, T_2 = 0, T_3 = 0;
-//////////////VARIABLES PARA ENCODER///////////////////////////////////////////////////////////////////////////////////
+
+// Encoder
 const int canal_b1 = 35;
 const int canal_a1 = 32;
 const int canal_b2 = 33;
@@ -74,12 +72,12 @@ const int canal_a3 = 12;
 int count1a = 0;
 
 //////////////VARIABLES PARA ALGORITMO DE CONTROL///////////////////////////////////////////////////////////////////
-//Variables de estado
+// Variables de estado
 float roll_pasado = 0, pitch_pasado = 0, theta_b_x_pasado = 0, theta_b_y_pasado = 0;
 float roll_d = 0, pitch_d = 0, theta_b_x_d = 0, theta_b_y_d = 0;
 float k1 = 0, k2 = 0, k3 = 0, k4 = 0;
 
-//PID
+// PID
 float error_roll = 0,  error_d_roll = 0,  error_i_roll = 0,  errorpasado_roll = 0;        //Roll
 float error_pitch = 0, error_d_pitch = 0, error_i_pitch = 0, errorpasado_pitch = 0;        //Pitch
 float kp=80, kd=0.8, ki=8.0;
